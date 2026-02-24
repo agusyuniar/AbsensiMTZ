@@ -7,11 +7,31 @@
     <meta name="description" content="Aplikasi Absensi Digital Yayasan Al-Mumtaz">
     <title>Absensi Al-Mumtaz</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Leaflet CSS loaded async via preload -->
+    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    </noscript>
 </head>
 
 <body>
+    <!-- Loading spinner shown immediately -->
+    <div id="appLoader"
+        style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E8F5E9 0%,#C8E6C9 100%);z-index:9999;flex-direction:column;gap:16px;">
+        <div
+            style="width:48px;height:48px;border:4px solid #C8E6C9;border-top-color:#1B5E20;border-radius:50%;animation:spin 0.8s linear infinite;">
+        </div>
+        <p style="color:#1B5E20;font-family:system-ui;font-weight:600;font-size:0.9rem;">Memuat Aplikasi...</p>
+    </div>
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+    </style>
+
     <div id="app"></div>
 
     <!-- Toast notification -->
@@ -34,15 +54,19 @@
     <!-- Sidebar overlay for mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Scripts -->
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/geofence.js"></script>
-    <script src="js/camera.js"></script>
-    <script src="js/pages/employee.js"></script>
-    <script src="js/pages/unit-head.js"></script>
-    <script src="js/pages/admin.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Leaflet JS deferred — only needed for maps -->
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- App scripts deferred -->
+    <script defer src="js/photostore.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/auth.js"></script>
+    <script defer src="js/geofence.js"></script>
+    <script defer src="js/camera.js"></script>
+    <script defer src="js/pages/employee.js"></script>
+    <script defer src="js/pages/unit-head.js"></script>
+    <script defer src="js/pages/admin.js"></script>
+    <script defer src="js/app.js"></script>
 </body>
 
 </html>

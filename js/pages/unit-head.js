@@ -200,7 +200,7 @@ const UnitHeadPage = (() => {
             : '<span class="badge badge-success">Hadir</span>';
         }
         const hasPhoto = att && att.foto_masuk;
-        const photoThumb = hasPhoto ? `<img src="${att.foto_masuk}" class="photo-thumb" onclick="event.stopPropagation();App.showPhotoLightbox('${att.foto_masuk}')" title="Foto Masuk">` : '';
+        const photoThumb = hasPhoto ? `<img src="" class="photo-thumb" data-photo="${att.foto_masuk}" onclick="event.stopPropagation();App.showPhotoLightbox('${att.foto_masuk}')" title="Foto Masuk" style="display:none;">` : '';
         return `
           <div class="unit-table-row" style="cursor:pointer;" onclick="UnitHeadPage.showEmployeeDetail('${emp.id_pegawai}')">
             <div class="unit-icon">${App.getProfilePicHTML(emp.id_pegawai)}</div>
@@ -228,6 +228,9 @@ const UnitHeadPage = (() => {
 
     // Load approval requests
     _loadUnitApprovals(unitData);
+
+    // Resolve async photos
+    App.resolvePhotos();
 
     // Anomalies
     document.getElementById('anomalyList').innerHTML = unitData

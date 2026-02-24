@@ -6,13 +6,44 @@ const App = (() => {
     let user = null;
 
     function init() {
-        if (!Auth.requireAuth()) return;
+        if (!Auth.requireAuth()) {
+            _hideLoader();
+            return;
+        }
         user = Auth.getUser();
+
+        // Migrate old localStorage photos to IndexedDB (non-blocking)
+        PhotoStore.migrateFromLocalStorage();
 
         // Pre-request GPS and camera permissions once at login (non-blocking)
         _preRequestPermissions();
 
         navigate(window.location.hash.replace('#', '') || 'home');
+        _hideLoader();
+    }
+
+    /** Resolve all data-photo elements on the page — loads idb: refs async */
+    async function resolvePhotos(container) {
+        const els = (container || document).querySelectorAll('[data-photo]');
+        for (const el of els) {
+            const ref = el.getAttribute('data-photo');
+            if (ref) {
+                const src = await PhotoStore.resolve(ref);
+                if (src) {
+                    el.src = src;
+                    el.style.display = '';
+                }
+            }
+        }
+    }
+
+    function _hideLoader() {
+        const loader = document.getElementById('appLoader');
+        if (loader) {
+            loader.style.transition = 'opacity 0.3s';
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 300);
+        }
     }
 
     /** Request GPS + camera permissions upfront and cache the result */
@@ -452,7 +483,16 @@ const App = (() => {
     }
 
     // --- Photo Lightbox ---
-    function showPhotoLightbox(src) {
+    async function showPhotoLightbox(src) {
+        // Resolve idb: references
+        let imgSrc = src;
+        if (src && src.startsWith('idb:')) {
+            imgSrc = await PhotoStore.resolve(src);
+            if (!imgSrc) {
+                showToast('Foto tidak ditemukan');
+                return;
+            }
+        }
         let lb = document.getElementById('photoLightbox');
         if (!lb) {
             lb = document.createElement('div');
@@ -467,7 +507,7 @@ const App = (() => {
             });
             document.body.appendChild(lb);
         }
-        document.getElementById('lightboxImg').src = src;
+        document.getElementById('lightboxImg').src = imgSrc;
         lb.classList.add('active');
     }
 
@@ -700,6 +740,7 @@ const App = (() => {
         showPhotoLightbox,
         closePhotoLightbox,
         showToast,
+        resolvePhotos,
         getPermissionState,
         init
     };

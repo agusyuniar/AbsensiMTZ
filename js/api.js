@@ -4,8 +4,8 @@
  */
 const API = (() => {
     // Set this to your Google Apps Script Web App URL after deployment
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbx08TFedQVom3AjQXjzTEgvHessd-kR5JDf80FRPaim9opTy0PjU0UOc3tPG0LfsTVB/exec';
-    const DEMO_MODE = false; // Set to false when GAS_URL is configured
+    const GAS_URL = '';
+    const DEMO_MODE = true; // Set to false when GAS_URL is configured
 
     // --- Demo Data ---
     const DEMO_LOCATIONS = [
@@ -170,8 +170,15 @@ const API = (() => {
                     if (nowTime > shiftTime) status = 'terlambat';
                 }
 
+                const logId = `LOG-${today.replace(/-/g, '')}-${data.id_pegawai}`;
+                let fotoRef = '';
+                if (data.foto) {
+                    const photoKey = `attendance_${logId}_masuk`;
+                    await PhotoStore.save(photoKey, data.foto);
+                    fotoRef = `idb:${photoKey}`;
+                }
                 const log = {
-                    id_log: `LOG-${today.replace(/-/g, '')}-${data.id_pegawai}`,
+                    id_log: logId,
                     id_pegawai: data.id_pegawai,
                     tanggal: today,
                     jam_masuk: jamStr,
@@ -179,7 +186,7 @@ const API = (() => {
                     lokasi_terdeteksi: data.lokasi || 'Tidak Diketahui',
                     lat_absen: data.lat || 0,
                     lng_absen: data.lng || 0,
-                    foto_masuk: data.foto || '',
+                    foto_masuk: fotoRef,
                     foto_keluar: '',
                     status: status,
                     keterangan: '',
@@ -199,7 +206,11 @@ const API = (() => {
                 }
                 const now = new Date();
                 existing.jam_keluar = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-                existing.foto_keluar = data.foto || '';
+                if (data.foto) {
+                    const photoKey = `attendance_${existing.id_log}_keluar`;
+                    await PhotoStore.save(photoKey, data.foto);
+                    existing.foto_keluar = `idb:${photoKey}`;
+                }
                 _setLocalData('am_attendance', logs);
                 return { success: true, data: existing };
             }
@@ -411,14 +422,33 @@ const API = (() => {
 
     // --- Profile Picture ---
     function getProfilePicture(employeeId) {
-        const pics = JSON.parse(localStorage.getItem('am_profile_pics') || '{}');
-        return pics[employeeId] || '';
+        // Sync check: return cached value or empty
+        // The actual photo is loaded async by PhotoStore
+        if (getProfilePicture._cache && getProfilePicture._cache[employeeId]) {
+            return getProfilePicture._cache[employeeId];
+        }
+        // Fallback: check old localStorage (for migration)
+        const oldPics = JSON.parse(localStorage.getItem('am_profile_pics') || '{}');
+        if (oldPics[employeeId]) return oldPics[employeeId];
+        return '';
     }
 
-    function saveProfilePicture(employeeId, base64Data) {
-        const pics = JSON.parse(localStorage.getItem('am_profile_pics') || '{}');
-        pics[employeeId] = base64Data;
-        localStorage.setItem('am_profile_pics', JSON.stringify(pics));
+    // Async loader for profile picture
+    async function loadProfilePicture(employeeId) {
+        const data = await PhotoStore.load(`profile_${employeeId}`);
+        if (data) {
+            if (!getProfilePicture._cache) getProfilePicture._cache = {};
+            getProfilePicture._cache[employeeId] = data;
+        }
+        return data;
+    }
+
+    async function saveProfilePicture(employeeId, base64Data) {
+        // Save to IndexedDB
+        await PhotoStore.save(`profile_${employeeId}`, base64Data);
+        // Update sync cache
+        if (!getProfilePicture._cache) getProfilePicture._cache = {};
+        getProfilePicture._cache[employeeId] = base64Data;
         // Also update session so avatar reflects immediately
         const sessionData = sessionStorage.getItem('am_user');
         if (sessionData) {
@@ -495,6 +525,7 @@ const API = (() => {
         deleteLocation,
         approveAttendance,
         getProfilePicture,
+        loadProfilePicture,
         saveProfilePicture
     };
 })();
