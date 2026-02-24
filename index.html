@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistem Absensi Digital Yayasan Al-Mumtaz — Login">
+  <title>Login — Absensi Al-Mumtaz</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <div class="login-wrapper">
+    <div class="login-pattern"></div>
+    <div class="login-card">
+      <div class="login-logo">🕌</div>
+      <h1 class="login-title">Yayasan Al-Mumtaz</h1>
+      <p class="login-subtitle">Sistem Absensi Digital</p>
+
+      <form id="loginForm" autocomplete="off">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email</label>
+          <input class="form-input" type="email" id="login-email" placeholder="nama@almumtaz.id" required
+            autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="password-wrapper">
+            <input class="form-input" type="password" id="login-password" placeholder="Masukkan password" required
+              autocomplete="current-password">
+            <button type="button" class="password-toggle" onclick="togglePassword()" id="pwToggle"
+              aria-label="Toggle password visibility">
+              <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="eyeOffIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                </path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+          Masuk
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:20px; font-size:0.75rem; color:rgba(255,255,255,0.4);">
+        © 2026 Yayasan Al-Mumtaz
+      </p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    function togglePassword() {
+      const pw = document.getElementById('login-password');
+      const eyeOn = document.getElementById('eyeIcon');
+      const eyeOff = document.getElementById('eyeOffIcon');
+      if (pw.type === 'password') {
+        pw.type = 'text';
+        eyeOn.style.display = 'none';
+        eyeOff.style.display = 'block';
+      } else {
+        pw.type = 'password';
+        eyeOn.style.display = 'block';
+        eyeOff.style.display = 'none';
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      btn.innerHTML = '<span class="spinner"></span> Memproses...';
+      btn.disabled = true;
+
+      try {
+        const result = await Auth.login(email, password);
+        if (result.success) {
+          window.location.href = 'app.html';
+        } else {
+          alert(result.message || 'Email atau password salah');
+          btn.innerHTML = 'Masuk';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Gagal terhubung ke server');
+        btn.innerHTML = 'Masuk';
+        btn.disabled = false;
+      }
+    });
+
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) {
+      window.location.href = 'app.html';
+    }
+  </script>
+</body>
+
+</html>
