@@ -5,7 +5,7 @@
 const API = (() => {
     // Set this to your Google Apps Script Web App URL after deployment
     const GAS_URL = '';
-    const DEMO_MODE = true; // Set to false when GAS_URL is configured
+    const DEMO_MODE = false; // Set to false when GAS_URL is configured
 
     // --- Demo Data ---
     const DEMO_LOCATIONS = [
