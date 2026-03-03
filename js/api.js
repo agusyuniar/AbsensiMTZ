@@ -4,7 +4,7 @@
  */
 const API = (() => {
     // Set this to your Google Apps Script Web App URL after deployment
-    const GAS_URL = '';
+    const GAS_URL = '1bgHCcx74l_Kpy1OlSvLcmDkwSQY6GduatZJehL4ebzM';
     const DEMO_MODE = false; // Set to false when GAS_URL is configured
 
     // --- Demo Data ---
